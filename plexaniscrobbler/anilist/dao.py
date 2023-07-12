@@ -1,12 +1,11 @@
 import json
 import logging
-from datetime import datetime, timedelta
 
 import requests
 
 from plexaniscrobbler.anilist import query
 from plexaniscrobbler.anilist.model import ListEntry
-from plexaniscrobbler.utils import Config, Singleton, persistence
+from plexaniscrobbler.utils import Config, Singleton
 
 logger = logging.getLogger(__name__)
 
@@ -16,18 +15,17 @@ class Anilist(metaclass=Singleton):
     BASE_URL = "https://anilist.co/api/v2"
     GQL_URL = "https://graphql.anilist.co"
 
-    def __init__(self, authorization_code: str = None):
+    def __init__(self):
         self._headers = {
             "Content-Type": "application/json",
             "Accept": "application/json",
             "Authorization": "",
         }
 
-        if Config.get("anilist_access_token"):
-            self._access_token = Config.get("anilist_access_token")
-        else:
-            self._authorize()
+        if not Config.get("anilist_access_token"):
+            raise ValueError("anilist_access_token is not configured.")
 
+        self._access_token = Config.get("anilist_access_token")
         self._headers["Authorization"] = "Bearer  " + self._access_token
 
     def _request(
@@ -65,57 +63,6 @@ class Anilist(metaclass=Singleton):
             )
 
         return rtn.json()
-
-    def _get_access(self, authorization_code: str):
-        body = {
-            "grant_type": "authorization_code",
-            "client_id": Config.get("anilist_client_id"),
-            "client_secret": Config.get("anilist_client_secret"),
-            "redirect_uri": Config.get("anilist_redirect_url"),
-            "code": authorization_code,
-        }
-
-        headers = self._headers
-        del headers["Authorization"]
-
-        response = self._request(
-            endpoint="/oauth/token", method="POST", headers=headers, body=body
-        )
-
-        return response
-
-    def _refresh_access(self, refresh_token: str):
-        body = {
-            "grant_type": "refresh_token",
-            "client_id": Config.get("anilist_client_id"),
-            "client_secret": Config.get("anilist_client_secret"),
-            "redirect_uri": Config.get("anilist_redirect_url"),
-            "refresh_token": refresh_token,
-        }
-
-        headers = self._headers
-        del headers["Authorization"]
-
-        response = self._request(
-            endpoint="/oauth/token", method="POST", headers=headers, body=body
-        )
-
-        return response
-
-    def _authorize(self, authorization_code: str = None):
-
-        if persistence.get("anilist-resfresh-token"):
-            access = self._refresh_access(persistence.get("anilist-resfresh-token"))
-        else:
-            access = self._get_access(authorization_code)
-
-        self._access_token = access["access_token"]
-        self._refresh_token = access["refresh_token"]
-        self._token_expiration = datetime.now() + timedelta(
-            seconds=access["expires_in"]
-        )
-
-        persistence.set("anilist-resfresh-token", self._refresh_token)
 
     def get_list(self, username, status):
 

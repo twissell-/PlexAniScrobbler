@@ -9,10 +9,8 @@ from plexaniscrobbler.utils.config import Config
 
 webhook = Blueprint("PlexAniScrobbler_webhook", __name__)
 
-_endpoint = Config.get("webhook_endpoint")
 
-
-@webhook.route(_endpoint, methods=["POST"])
+@webhook.route("webhook", methods=["POST"])
 def _webhook():
     plex_username = Config.get("plex_username")
     anilist_username = Config.get("anilist_username")

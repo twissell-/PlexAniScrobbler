@@ -3,6 +3,7 @@ from functools import reduce
 
 from flask import Blueprint, Response, current_app, request
 from Levenshtein import distance
+from werkzeug.exceptions import BadRequestKeyError
 
 from plexaniscrobbler.anilist import Anilist
 from plexaniscrobbler.utils.config import Config
@@ -18,7 +19,7 @@ def _webhook():
 
     try:
         data = json.loads(request.form["payload"])
-    except KeyError:
+    except BadRequestKeyError:
         current_app.logger.debug("Request does not have a payload.")
         return Response(status=200)
 

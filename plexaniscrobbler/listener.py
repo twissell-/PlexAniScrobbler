@@ -1,7 +1,7 @@
 import json
 from functools import reduce
 
-from flask import Blueprint, Response, request
+from flask import Blueprint, Response, current_app, request
 from Levenshtein import distance
 
 from plexaniscrobbler.anilist import Anilist
@@ -16,7 +16,11 @@ def _webhook():
     anilist_username = Config.get("anilist_username")
     anilist = Anilist()
 
-    data = json.loads(request.form["payload"])
+    try:
+        data = json.loads(request.form["payload"])
+    except KeyError:
+        current_app.logger.debug("Request does not have a payload.")
+        return Response(status=200)
 
     # event filter
     if (
@@ -24,6 +28,7 @@ def _webhook():
         or "media.scrobble" not in data["event"]  # media.scrobble
         or data["Metadata"]["type"] not in ["episode", "movie"]
     ):
+        current_app.logger.debug("Request ignored by filters.")
         return Response(status=200)
 
     metadata = data["Metadata"]
@@ -31,10 +36,8 @@ def _webhook():
 
     if metadata["type"] == "episode":
         title = metadata["grandparentTitle"]
-        episode = metadata["index"]
     else:
         title = metadata["title"]
-        episode = 1
 
     # TODO: Make this comparison by distance and year.
     entry = reduce(
@@ -42,22 +45,17 @@ def _webhook():
         entries,
     )
 
-    print(title, episode, distance(title, entry.title))
-    print(entry)
-
     if distance(title, entry.title) > 2:
-        print("Title '{}' not found in watchlist.".format(title))
+        current_app.logger.info("Title '{}' not found in watchlist.".format(title))
         return Response(status=200)
 
     progress = (
         metadata["index"] if metadata["index"] < entry.episodes else entry.progress + 1
     )
 
-    progress = entry.progress
-
     res = anilist.update_progress(entry.id, progress)
 
-    print(
+    current_app.logger.info(
         "Updated {} to {}".format(
             entry.title, res["data"]["SaveMediaListEntry"]["progress"]
         )

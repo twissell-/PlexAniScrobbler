@@ -17,11 +17,12 @@ def _webhook():
     anilist_username = Config.get("anilist_username")
     anilist = Anilist()
 
-    try:
-        data = json.loads(request.form["payload"])
-    except BadRequestKeyError:
+    data = request.form.get("payload")
+    if not data:
         current_app.logger.debug("Request does not have a payload.")
         return Response(status=200)
+
+    data = json.loads(data)
 
     # event filter
     if (

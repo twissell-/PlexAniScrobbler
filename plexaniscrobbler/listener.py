@@ -3,7 +3,6 @@ from functools import reduce
 
 from flask import Blueprint, Response, current_app, request
 from Levenshtein import distance
-from werkzeug.exceptions import BadRequestKeyError
 
 from plexaniscrobbler.anilist import Anilist
 from plexaniscrobbler.utils.config import Config

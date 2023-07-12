@@ -56,8 +56,10 @@ def _webhook():
     res = anilist.update_progress(entry.id, progress)
 
     current_app.logger.info(
-        "Updated {} to {}".format(
-            entry.title, res["data"]["SaveMediaListEntry"]["progress"]
+        "Updated {} to {}/{}.".format(
+            entry.title,
+            res["data"]["SaveMediaListEntry"]["progress"],
+            entry.episodes,
         )
     )
 

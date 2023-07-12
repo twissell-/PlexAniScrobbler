@@ -7,7 +7,7 @@ from Levenshtein import distance
 from plexaniscrobbler.anilist import Anilist
 from plexaniscrobbler.utils.config import Config
 
-webhook = Blueprint("PlexAniScrobbler_webhook", __name__)
+webhook = Blueprint("PlexAniScrobbler", __name__)
 
 
 @webhook.route("webhook", methods=["POST"])

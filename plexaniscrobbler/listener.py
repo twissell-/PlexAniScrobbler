@@ -1,13 +1,15 @@
 import json
+import logging
 from functools import reduce
 
-from flask import Blueprint, Response, current_app, request
+from flask import Blueprint, Response, request
 from Levenshtein import distance
 from werkzeug.exceptions import BadRequestKeyError
 
 from plexaniscrobbler.anilist import Anilist
 from plexaniscrobbler.utils.config import Config
 
+_logger = logging.getLogger("PlexAniScrobbler")
 webhook = Blueprint("PlexAniScrobbler", __name__)
 
 
@@ -19,7 +21,7 @@ def _webhook():
 
     data = request.form.get("payload")
     if not data:
-        current_app.logger.debug("Request does not have a payload.")
+        _logger.debug("Request does not have a payload.")
         return Response(status=200)
 
     data = json.loads(data)
@@ -30,7 +32,7 @@ def _webhook():
         or "media.scrobble" not in data["event"]  # media.scrobble
         or data["Metadata"]["type"] not in ["episode", "movie"]
     ):
-        current_app.logger.debug("Request ignored by filters.")
+        _logger.debug("Request ignored by filters.")
         return Response(status=200)
 
     metadata = data["Metadata"]
@@ -48,7 +50,7 @@ def _webhook():
     )
 
     if distance(title, entry.title) > 2:
-        current_app.logger.info("Title '{}' not found in watchlist.".format(title))
+        _logger.info("Title '{}' not found in watchlist.".format(title))
         return Response(status=200)
 
     progress = (
@@ -57,7 +59,7 @@ def _webhook():
 
     res = anilist.update_progress(entry.id, progress)
 
-    current_app.logger.info(
+    _logger.info(
         "Updated {} to {}/{}.".format(
             entry.title,
             res["data"]["SaveMediaListEntry"]["progress"],

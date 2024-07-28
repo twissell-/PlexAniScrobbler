@@ -72,10 +72,6 @@ class Anilist(metaclass=Singleton):
                 "query": query.LIST_BY_USERNAME_AND_STATUS,
                 "variables": {"username": username, "status": status},
             },
-            headers={
-                "Content-Type": "application/json",
-                "Accept": "application/json",
-            },
         )
 
         entries = (

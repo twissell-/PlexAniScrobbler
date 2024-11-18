@@ -92,6 +92,9 @@ class Anilist(metaclass=Singleton):
     def get_watching_list(self, username):
         return self.get_list(username, "CURRENT")
 
+    def get_rewatching_list(self, username):
+        return self.get_list(username, "REPEATING")
+
     def update_progress(self, entry_id: int, progress: int):
 
         response = self._request(

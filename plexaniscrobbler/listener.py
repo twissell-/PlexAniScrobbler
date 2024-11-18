@@ -34,6 +34,7 @@ def _webhook():
 
     metadata = data["Metadata"]
     entries = anilist.get_watching_list(anilist_username)
+    entries += anilist.get_rewatching_list(anilist_username)
 
     if metadata["type"] == "episode":
         title = metadata["grandparentTitle"]

@@ -37,13 +37,17 @@ def _webhook():
     entries += anilist.get_rewatching_list(anilist_username)
 
     if metadata["type"] == "episode":
-        title = metadata["grandparentTitle"]
+        title = metadata["grandparentTitle"].lower()
     else:
-        title = metadata["title"]
+        title = metadata["title"].lower()
 
     # TODO: Make this comparison by distance and year.
     entry = reduce(
-        lambda x, y: x if distance(x.title, title) < distance(y.title, title) else y,
+        lambda x, y: (
+            x
+            if distance(x.title.lower(), title) < distance(y.title.lower(), title)
+            else y
+        ),
         entries,
     )
 

@@ -37,21 +37,22 @@ def _webhook():
     entries += anilist.get_rewatching_list(anilist_username)
 
     if metadata["type"] == "episode":
-        title = metadata["grandparentTitle"].lower()
+        title = metadata["grandparentTitle"]
     else:
-        title = metadata["title"].lower()
+        title = metadata["title"]
 
     # TODO: Make this comparison by distance and year.
     entry = reduce(
         lambda x, y: (
             x
-            if distance(x.title.lower(), title) < distance(y.title.lower(), title)
+            if distance(x.title.lower(), title.lower())
+            < distance(y.title.lower(), title.lower())
             else y
         ),
         entries,
     )
 
-    if distance(title, entry.title) > 2:
+    if distance(title.lower(), entry.title.lower()) > 2:
         current_app.logger.info("Title '{}' not found in watchlist.".format(title))
         return Response(status=200)
 

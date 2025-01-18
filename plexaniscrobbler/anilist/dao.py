@@ -74,12 +74,13 @@ class Anilist(metaclass=Singleton):
             },
         )
 
-        entries = (
-            response.get("data")
-            .get("MediaListCollection")
-            .get("lists")[0]
-            .get("entries")
-        )
+        entries = response.get("data").get("MediaListCollection").get("lists")
+
+        if not entries:
+            logger.debug(f"No lists found for {username} with status {status}.")
+            return []
+
+        entries = entries[0].get("entries")
         logger.debug("Raw response: " + json.dumps(entries, indent=2))
 
         rtn = []
